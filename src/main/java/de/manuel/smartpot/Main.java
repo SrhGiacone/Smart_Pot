@@ -66,6 +66,7 @@ public class Main {
             json = "{\"wert\":" + aktuellerFeuchtigkeitswert +
                     ",\"anzeige\":\"" + aktuellerFeuchtigkeitswert + " %\",\"status\":\"ok\"}";
         }
+        //test
 
         byte[] response = json.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
