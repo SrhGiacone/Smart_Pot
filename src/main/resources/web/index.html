@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<!--
+    Sagt dem Browser:
+    "Diese Datei ist ein HTML5-Dokument."
+
+    Das ist wichtig, damit der Browser die Seite im modernen Standard-Modus rendert
+    und nicht in einem alten Kompatibilitätsmodus.
+-->
+
+<html lang="de">
+<!--
+    <html> ist das Wurzelelement der ganzen Seite.
+
+    lang="de" bedeutet:
+    - Die Hauptsprache der Seite ist Deutsch.
+    - Das hilft Browsern, Screenreadern und Suchmaschinen.
+-->
+
+<head>
+    <!--
+        <head> enthält Metadaten über die Seite.
+        Also Dinge, die nicht direkt sichtbar auf der Seite stehen,
+        aber für Browser und Darstellung wichtig sind.
+    -->
+
+    <meta charset="UTF-8" />
+    <!--
+        Zeichensatz der Seite = UTF-8
+
+        Dadurch werden Umlaute wie:
+        ä ö ü ß
+        korrekt dargestellt.
+    -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+        Wichtig für responsive Design.
+
+        width=device-width
+        -> Die Seitenbreite soll sich an der echten Gerätebreite orientieren.
+
+        initial-scale=1.0
+        -> Beim Laden wird nicht hinein- oder herausgezoomt.
+
+        Ohne diese Zeile sehen Seiten auf Handys oft falsch skaliert aus.
+    -->
+
+    <title>Smart Pot</title>
+    <!--
+        Der Titel der Seite.
+        Dieser Text steht im Browser-Tab oben.
+    -->
+
+    <link rel="stylesheet" href="style.css" />
+    <!--
+        Hier wird die externe CSS-Datei eingebunden.
+
+        rel="stylesheet"
+        -> sagt dem Browser: das ist eine Stylesheet-Datei.
+
+        href="style.css"
+        -> Pfad zur CSS-Datei.
+    -->
+</head>
+
+<body>
+<!--
+    <body> enthält alles, was auf der Seite sichtbar ist.
+-->
+
+<div class="background-bonsai background-bonsai-1">🪴</div>
+<div class="background-bonsai background-bonsai-2">🪴</div>
+<div class="background-bonsai background-bonsai-3">🪴</div>
+<div class="background-bonsai background-bonsai-4">🪴</div>
+<div class="background-bonsai background-bonsai-5">🪴</div>
+<div class="background-bonsai background-bonsai-6">🪴</div>
+<!--
+    Das sind 6 Hintergrund-Elemente mit Bonsai-Emoji.
+
+    Warum mehrere?
+    - Damit man an verschiedenen Stellen im Hintergrund unscharfe Bonsai-Symbole sieht.
+
+    class="background-bonsai"
+    -> gemeinsame Grundklasse für alle Bonsai-Hintergrundelemente
+
+    class="background-bonsai-1" bis "-6"
+    -> zusätzliche Klassen, damit jedes Element individuell positioniert werden kann
+
+    Der eigentliche sichtbare Inhalt dieser Elemente ist das Emoji:
+    🪴
+-->
+
+<div class="background-blur background-blur-1"></div>
+<div class="background-blur background-blur-2"></div>
+<div class="background-blur background-blur-3"></div>
+<div class="background-blur background-blur-4"></div>
+<div class="background-blur background-blur-5"></div>
+<div class="background-blur background-blur-6"></div>
+<!--
+    Das sind zusätzliche unscharfe Flächen im Hintergrund.
+
+    Sie enthalten keinen Text.
+    Ihre Aufgabe ist nur visuell:
+    - grünliche / pflanzliche weiche Flecken
+    - mehr Tiefe im Hintergrund
+    - Glassmorphism-Effekt verstärken
+
+    Genau wie oben:
+    background-blur      = Grundklasse
+    background-blur-1... = individuelle Positionierung / Größe / Rotation
+-->
+
+<div class="app">
+    <!--
+        Hauptrahmen deiner kompletten App.
+
+        Hier liegt dein ganzes sichtbares UI drin.
+        Die Klasse .app wird in CSS benutzt, um Breite, Höhe und Innenabstände zu steuern.
+    -->
+
+    <div class="glass main-card">
+        <!--
+            Das ist die große Hauptkarte / Hauptfläche deiner App.
+
+            class="glass"
+            -> bekommt den Glas-Look aus dem CSS
+
+            class="main-card"
+            -> spezielle Regeln für diese große Hauptbox
+        -->
+
+        <header class="top-bar">
+            <!--
+                Der obere Bereich der App.
+
+                <header> ist ein semantisches HTML-Element.
+                Das bedeutet:
+                - Es beschreibt inhaltlich: "Das ist der Kopfbereich."
+
+                Die Klasse .top-bar steuert das Layout im Kopfbereich.
+            -->
+
+            <div class="title-wrap">
+                <!--
+                    Container für Titel und Untertitel.
+                    Damit lassen sich beide gemeinsam mittig ausrichten.
+                -->
+
+                <h1 class="main-title">🌱 Smart Pot</h1>
+                <!--
+                    <h1> = Hauptüberschrift der Seite.
+                    Das ist die wichtigste Überschrift im Dokument.
+
+                    class="main-title"
+                    -> extra Styling im CSS
+
+                    Inhalt:
+                    - Emoji 🌱
+                    - Text "Smart Pot"
+                -->
+
+                <p class="subtitle">Bodenfeuchtigkeit deines Bonsai</p>
+                <!--
+                    <p> = Absatz / normaler Textblock
+
+                    Hier dient er als Untertitel zur App.
+                    Er erklärt, worum es auf der Seite geht.
+                -->
+            </div>
+
+            <div class="glass clock-box">
+                <!--
+                    Box für die Live-Uhr oben rechts.
+
+                    Wieder:
+                    class="glass"
+                    -> Glasoptik
+                    class="clock-box"
+                    -> spezielle Größe / Position / Stil
+                -->
+
+                <span id="liveClock">--:--:--</span>
+                <!--
+                    <span> ist ein Inline-Element für kurzen Text.
+
+                    id="liveClock"
+                    -> wichtig für JavaScript
+                    -> app.js findet dieses Element über die ID
+                       und ersetzt den Text später mit der echten Uhrzeit.
+
+                    Anfangswert:
+                    --:--:--
+                    Das ist ein Platzhalter, bis JavaScript die Uhr aktualisiert.
+                -->
+            </div>
+        </header>
+
+        <main class="content-area">
+            <!--
+                Der Hauptinhalt der Seite.
+
+                <main> ist ein semantisches Element und bedeutet:
+                "Hier ist der wichtigste Seiteninhalt."
+
+                Die Klasse .content-area steuert das Layout der drei Spalten:
+                - links Übersicht
+                - Mitte Baum
+                - rechts Werte
+            -->
+
+            <section class="glass side-box overview-box">
+                <!--
+                    Linke Seitenbox = Übersicht
+
+                    <section> bedeutet:
+                    ein inhaltlich zusammengehöriger Bereich
+
+                    class="glass"
+                    -> Glasoptik
+
+                    class="side-box"
+                    -> allgemeine Box-Regeln für linke/rechte Seitenfelder
+
+                    class="overview-box"
+                    -> spezielle Kennzeichnung für die linke Übersicht
+                -->
+
+                <h2 class="box-title">Übersicht</h2>
+                <!--
+                    <h2> = Unterüberschrift innerhalb der Seite
+
+                    h1 = Haupttitel der Seite
+                    h2 = Titel für Abschnitte
+                -->
+
+                <div class="info-list">
+                    <!--
+                        Container für die vier Informationszeilen links.
+                        Diese Liste wird im CSS meist als Grid oder Flex-Bereich gestaltet.
+                    -->
+
+                    <div class="info-row">Zuletzt gedüngt</div>
+                    <div class="info-row">Zuletzt gegossen</div>
+                    <div class="info-row">Bodenfeuchtigkeit</div>
+                    <div class="info-row">Status</div>
+                    <!--
+                        Vier Textzeilen links.
+
+                        Das sind die Bezeichnungen / Labels.
+                        Rechts daneben stehen dann die dazugehörigen Werte.
+                    -->
+                </div>
+            </section>
+
+            <section class="glass image-box">
+                <!--
+                    Mittlere Box mit dem Bonsai-Baum.
+
+                    class="glass"
+                    -> Glas-Look
+
+                    class="image-box"
+                    -> spezielle Regeln für den mittleren Bereich
+                -->
+
+                <svg class="bonsai-tree" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg" aria-label="Bonsai Baum">
+                    <!--
+                        Hier wird kein normales Bild benutzt, sondern SVG.
+
+                        SVG = Scalable Vector Graphics
+                        Vorteil:
+                        - gestochen scharf
+                        - frei skalierbar
+                        - kein Qualitätsverlust beim Vergrößern
+
+                        class="bonsai-tree"
+                        -> CSS kann Größe und Position steuern
+
+                        viewBox="0 0 700 700"
+                        -> internes Koordinatensystem des SVG
+                           von x=0 bis x=700
+                           und y=0 bis y=700
+
+                        xmlns="http://www.w3.org/2000/svg"
+                        -> sagt dem Browser: das ist SVG-Code
+
+                        aria-label="Bonsai Baum"
+                        -> Barrierefreiheit
+                        -> Screenreader wissen dann, was dieses SVG darstellt
+                    -->
+
+                    <defs>
+                        <!--
+                            <defs> enthält Definitionen, die später wiederverwendet werden.
+                            Hier werden Farbverläufe und ein Schattenfilter definiert.
+                        -->
+
+                        <linearGradient id="leafGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <!--
+                                Farbverlauf für Blätter.
+                                linearGradient = linearer Farbverlauf
+
+                                id="leafGradient1"
+                                -> später mit fill="url(#leafGradient1)" benutzt
+                            -->
+                            <stop offset="0%" stop-color="#c7ec8e"/>
+                            <stop offset="100%" stop-color="#6daa43"/>
+                            <!--
+                                Anfangsfarbe und Endfarbe des Verlaufs
+                            -->
+                        </linearGradient>
+
+                        <linearGradient id="leafGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <!-- Zweiter Farbverlauf für Blätter -->
+                            <stop offset="0%" stop-color="#aedb72"/>
+                            <stop offset="100%" stop-color="#598f38"/>
+                        </linearGradient>
+
+                        <linearGradient id="trunkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <!-- Farbverlauf für Stamm und Äste -->
+                            <stop offset="0%" stop-color="#7c5b48"/>
+                            <stop offset="100%" stop-color="#4c3428"/>
+                        </linearGradient>
+
+                        <linearGradient id="potGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <!-- Farbverlauf für den Topf -->
+                            <stop offset="0%" stop-color="#cd8d64"/>
+                            <stop offset="100%" stop-color="#a76340"/>
+                        </linearGradient>
+
+                        <filter id="treeShadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <!--
+                                Definiert einen Filter für Schatten.
+                                Der Bereich ist absichtlich größer als das Objekt,
+                                damit der Schatten nicht abgeschnitten wird.
+                            -->
+
+                            <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="rgba(0,0,0,0.18)"/>
+                            <!--
+                                feDropShadow = Schlagschatten
+
+                                dx="0"
+                                -> kein Schatten nach links/rechts versetzt
+
+                                dy="16"
+                                -> Schatten nach unten versetzt
+
+                                stdDeviation="18"
+                                -> wie weich / unscharf der Schatten ist
+
+                                flood-color
+                                -> Schattenfarbe
+                            -->
+                        </filter>
+                    </defs>
+
+                    <!-- Krone hinten -->
+                    <g filter="url(#treeShadow)">
+                        <!--
+                            <g> = Gruppe
+                            Hier werden mehrere Elemente zusammengefasst.
+
+                            filter="url(#treeShadow)"
+                            -> auf alle Elemente in dieser Gruppe wird der Schattenfilter angewendet
+                        -->
+
+                        <ellipse cx="235" cy="205" rx="95" ry="72" fill="url(#leafGradient2)"/>
+                        <ellipse cx="350" cy="170" rx="122" ry="88" fill="url(#leafGradient1)"/>
+                        <ellipse cx="470" cy="210" rx="98" ry="74" fill="url(#leafGradient2)"/>
+                        <ellipse cx="228" cy="300" rx="95" ry="68" fill="url(#leafGradient1)"/>
+                        <ellipse cx="355" cy="278" rx="132" ry="90" fill="url(#leafGradient2)"/>
+                        <ellipse cx="480" cy="305" rx="102" ry="70" fill="url(#leafGradient1)"/>
+                        <!--
+                            Mehrere Ellipsen bilden die hintere Baumkrone.
+
+                            cx = Mittelpunkt x
+                            cy = Mittelpunkt y
+                            rx = horizontaler Radius
+                            ry = vertikaler Radius
+                            fill = Füllung / Farbe / Farbverlauf
+                        -->
+                    </g>
+
+                    <!-- Stamm -->
+                    <path d="M346 500
+                                 C332 438, 330 390, 348 338
+                                 C368 282, 387 240, 392 185"
+                          fill="none"
+                          stroke="url(#trunkGradient)"
+                          stroke-width="34"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                    <!--
+                        <path> ist ein frei gezeichneter Pfad.
+
+                        d="..."
+                        -> darin stehen die Zeichenanweisungen.
+
+                        M346 500
+                        -> Move to: Starte bei x=346, y=500
+
+                        C...
+                        -> Cubic Bézier Curve
+                        -> zeichnet eine weiche Kurve mit Kontrollpunkten
+
+                        fill="none"
+                        -> keine Innenfüllung
+
+                        stroke="url(#trunkGradient)"
+                        -> Linienfarbe = Stamm-Farbverlauf
+
+                        stroke-width="34"
+                        -> Linienstärke
+
+                        stroke-linecap="round"
+                        -> Linienenden rund
+
+                        stroke-linejoin="round"
+                        -> Übergänge rund
+                    -->
+
+                    <!-- Äste -->
+                    <path d="M354 320 C292 292, 238 266, 178 233"
+                          fill="none"
+                          stroke="url(#trunkGradient)"
+                          stroke-width="20"
+                          stroke-linecap="round"/>
+
+                    <path d="M360 304 C425 290, 490 268, 550 228"
+                          fill="none"
+                          stroke="url(#trunkGradient)"
+                          stroke-width="20"
+                          stroke-linecap="round"/>
+
+                    <path d="M344 385 C274 371, 214 352, 152 320"
+                          fill="none"
+                          stroke="url(#trunkGradient)"
+                          stroke-width="18"
+                          stroke-linecap="round"/>
+
+                    <path d="M362 375 C432 365, 497 345, 562 315"
+                          fill="none"
+                          stroke="url(#trunkGradient)"
+                          stroke-width="18"
+                          stroke-linecap="round"/>
+
+                    <path d="M370 258 C395 220, 410 183, 418 143"
+                          fill="none"
+                          stroke="url(#trunkGradient)"
+                          stroke-width="16"
+                          stroke-linecap="round"/>
+                    <!--
+                        Das sind mehrere Pfade für Äste.
+                        Jeder Pfad ist eine gebogene Linie.
+                        Zusammen mit dem Stamm ergibt das die Baumstruktur.
+                    -->
+
+                    <!-- Krone vorne -->
+                    <g>
+                        <ellipse cx="215" cy="238" rx="84" ry="58" fill="url(#leafGradient1)"/>
+                        <ellipse cx="338" cy="206" rx="112" ry="74" fill="url(#leafGradient1)"/>
+                        <ellipse cx="458" cy="240" rx="94" ry="60" fill="url(#leafGradient1)"/>
+                        <ellipse cx="220" cy="330" rx="86" ry="58" fill="url(#leafGradient2)"/>
+                        <ellipse cx="360" cy="315" rx="120" ry="80" fill="url(#leafGradient1)"/>
+                        <ellipse cx="472" cy="336" rx="90" ry="58" fill="url(#leafGradient2)"/>
+                    </g>
+                    <!--
+                        Noch mehr Ellipsen für die vordere Baumkrone.
+                        So wirkt der Baum voller und hat mehr Tiefe.
+                    -->
+
+                    <!-- Erde -->
+                    <ellipse cx="350" cy="560" rx="140" ry="42" fill="#634a3a"/>
+                    <!--
+                        Dunkle Ellipse als Erde im Topf.
+                    -->
+
+                    <!-- Topf -->
+                    <rect x="205" y="560" width="290" height="42" rx="12" fill="#d69a70"/>
+                    <!--
+                        Oberer Rand des Topfes.
+
+                        <rect> = Rechteck
+                        x, y = Position
+                        width, height = Größe
+                        rx = abgerundete Ecken
+                    -->
+
+                    <path d="M220 602 H480 L445 690 Q440 710 410 710 H290 Q260 710 255 690 Z"
+                          transform="translate(0 -25) scale(1 0.92)"
+                          fill="url(#potGradient)"/>
+                    <!--
+                        Unterer Topfkörper als eigener Pfad.
+
+                        transform="translate(0 -25) scale(1 0.92)"
+                        -> verschiebt und skaliert die Form leicht,
+                           damit sie besser passt
+                    -->
+
+                    <rect x="210" y="580" width="280" height="20" rx="8" fill="#bc7f58"/>
+                    <!--
+                        Zusätzliche Zierkante / Schattenkante am Topf.
+                    -->
+                </svg>
+            </section>
+
+            <section class="glass side-box values-box">
+                <!--
+                    Rechte Box mit den echten Werten.
+                -->
+
+                <h2 class="box-title">Werte</h2>
+
+                <div class="info-list">
+                    <div class="info-row"><span id="lastFertilized">--</span></div>
+                    <div class="info-row"><span id="lastWatered">--</span></div>
+                    <div class="info-row"><span id="feuchtigkeit">58 %</span></div>
+                    <div class="info-row"><span id="statusText">Optimal</span></div>
+                </div>
+                <!--
+                    Hier stehen die Werte, die rechts angezeigt werden.
+
+                    Wichtig sind die IDs:
+                    id="lastFertilized"
+                    id="lastWatered"
+                    id="feuchtigkeit"
+                    id="statusText"
+
+                    Diese IDs braucht dein JavaScript,
+                    um die Inhalte später dynamisch zu ändern.
+                -->
+            </section>
+        </main>
+
+        <footer class="bottom-area">
+            <!--
+                Unterer Bereich der App.
+
+                <footer> ist semantisch der Fußbereich.
+                Hier liegen Fortschrittsbalken und Buttons.
+            -->
+
+            <div class="progress-wrap">
+                <!--
+                    Container für den Fortschrittsbalken.
+                -->
+
+                <div class="progress-bar glass">
+                    <!--
+                        Äußere Hülle des Balkens
+                    -->
+
+                    <div class="progress-fill" id="progressFill"></div>
+                    <!--
+                        Innere Füllung des Balkens.
+
+                        id="progressFill"
+                        -> JavaScript kann die Breite verändern,
+                           z. B. style.width = "58%"
+
+                        Dadurch wächst oder schrumpft der Balken je nach Feuchtigkeit.
+                    -->
+                </div>
+            </div>
+
+            <div class="button-area">
+                <!--
+                    Container für die beiden Buttons unten rechts.
+                -->
+
+                <button id="fertilizedBtn" class="glass action-button">Gedüngt</button>
+                <button id="wateredBtn" class="glass action-button">Gegossen</button>
+                <!--
+                    Zwei Buttons mit IDs für JavaScript.
+
+                    id="fertilizedBtn"
+                    -> Wenn man klickt, kann JavaScript den Zeitpunkt für "zuletzt gedüngt" setzen
+
+                    id="wateredBtn"
+                    -> Wenn man klickt, kann JavaScript den Zeitpunkt für "zuletzt gegossen" setzen
+                -->
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="app.js"></script>
+<!--
+    Hier wird die JavaScript-Datei eingebunden.
+
+    Warum am Ende vom body?
+    - Weil zuerst das HTML geladen wird
+    - danach das JavaScript
+    - so existieren die HTML-Elemente schon,
+      wenn JavaScript sie über IDs sucht
+
+    Das ist oft praktischer und robuster.
+-->
+
+</body>
+</html>

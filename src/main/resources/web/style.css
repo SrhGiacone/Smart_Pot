@@ -1,0 +1,933 @@
+/*
+    Der Stern * ist der Universal-Selektor.
+    Er wählt ALLE HTML-Elemente auf der Seite aus.
+
+    Das hier ist ein sehr typischer CSS-Reset:
+    - margin: 0  -> entfernt Standard-Außenabstände
+    - padding: 0 -> entfernt Standard-Innenabstände
+    - box-sizing: border-box
+      -> sorgt dafür, dass width/height auch padding und border mit einrechnen
+      -> macht Layouts viel leichter kontrollierbar
+*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/*
+    :root ist das oberste Element des Dokuments.
+    Hier legt man oft CSS-Variablen an.
+
+    Vorteil von CSS-Variablen:
+    - du kannst Werte zentral definieren
+    - später überall wiederverwenden
+    - Änderungen sind einfacher
+*/
+:root {
+    /*
+        Innenabstand außen um die komplette Seite herum.
+        clamp(min, bevorzugt, max) bedeutet:
+        - mindestens 10px
+        - idealerweise 1.4vw
+        - höchstens 22px
+
+        vw = viewport width = Breite des Browserfensters
+    */
+    --page-padding: clamp(10px, 1.4vw, 22px);
+
+    /*
+        Innenabstand innerhalb der Hauptkarte
+    */
+    --card-padding: clamp(14px, 1.6vw, 24px);
+
+    /*
+        Standard-Abstand zwischen Bereichen
+    */
+    --gap: clamp(12px, 1.2vw, 20px);
+
+    /*
+        Radius für die große Hauptbox
+    */
+    --radius: clamp(20px, 1.8vw, 32px);
+
+    /*
+        Radius für Panels wie linke/rechte Boxen und Uhr
+    */
+    --panel-radius: clamp(18px, 1.5vw, 28px);
+
+    /*
+        Radius für kleinere Zeilenfelder
+    */
+    --row-radius: clamp(14px, 1.2vw, 22px);
+
+    /*
+        Schriftgröße für den Haupttitel "Smart Pot"
+    */
+    --title-size: clamp(2.4rem, 4.8vw, 5.2rem);
+
+    /*
+        Schriftgröße für den Untertitel
+    */
+    --subtitle-size: clamp(1.2rem, 1.8vw, 2rem);
+
+    /*
+        Schriftgröße für Box-Titel wie "Übersicht" und "Werte"
+    */
+    --section-title-size: clamp(1.8rem, 2.8vw, 3.4rem);
+
+    /*
+        Standard-Schriftgröße für normale Texte
+    */
+    --text-size: clamp(1.15rem, 1.5vw, 1.8rem);
+
+    /*
+        Schriftgröße für die Live-Uhr
+    */
+    --clock-size: clamp(1.3rem, 2.3vw, 2.4rem);
+
+    /*
+        Hintergrundfarbe für Glasflächen.
+        Sehr niedrige Alpha-Werte = sehr transparent
+    */
+    --glass-bg: rgba(255, 255, 255, 0.012);
+
+    /*
+        Rahmenfarbe der Glasflächen
+    */
+    --glass-border: rgba(255, 255, 255, 0.08);
+
+    /*
+        Heller Glanz oben auf den Glasflächen
+    */
+    --glass-highlight: rgba(255, 255, 255, 0.08);
+
+    /*
+        Schattenfarbe für Glasflächen
+    */
+    --glass-shadow: rgba(0, 0, 0, 0.05);
+
+    /*
+        Hintergrundfarbe für kleine innere Felder
+        z. B. die Info-Zeilen
+    */
+    --inner-panel-bg: rgba(255, 255, 255, 0.004);
+}
+
+/*
+    html und body bekommen volle Breite und mindestens volle Höhe.
+    Dadurch kann dein Layout den ganzen Bildschirm nutzen.
+*/
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+/*
+    Grundstil der ganzen Seite
+*/
+body {
+    /*
+        Standardschriftart
+    */
+    font-family: Arial, sans-serif;
+
+    /*
+        Alles schön fett
+    */
+    font-weight: 800;
+
+    /*
+        Standard-Textfarbe
+    */
+    color: #111;
+
+    /*
+        Verlauf im Hintergrund
+        135deg = diagonaler Verlauf
+    */
+    background: linear-gradient(135deg, #dcebea 0%, #e8e5d4 100%);
+
+    /*
+        position: relative ist wichtig,
+        damit absolut/fixed positionierte Kinder sinnvoll darüber liegen können
+    */
+    position: relative;
+
+    /*
+        Horizontal kein Scrollen
+    */
+    overflow-x: hidden;
+
+    /*
+        Vertikal darf gescrollt werden
+    */
+    overflow-y: auto;
+}
+
+/* Scrollbar */
+/*
+    WebKit-Scrollbar-Anpassung für Chrome/Edge/Safari
+*/
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+/*
+    Hintergrund der Scrollleiste
+*/
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.10);
+}
+
+/*
+    Der "Griff" der Scrollbar
+*/
+::-webkit-scrollbar-thumb {
+    background: rgba(110, 160, 110, 0.40);
+    border-radius: 999px;
+}
+
+/*
+    Hover-Effekt für Scrollbar-Griff
+*/
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(90, 140, 90, 0.55);
+}
+
+/* Weiche Pflanzenflächen */
+/*
+    Grundstil für die verschwommenen Farbflächen im Hintergrund
+*/
+.background-blur {
+    /*
+        fixed = bleibt relativ zum Browserfenster stehen
+    */
+    position: fixed;
+
+    /*
+        Sehr runde Form
+    */
+    border-radius: 999px;
+
+    /*
+        Macht die Flächen unscharf
+    */
+    filter: blur(30px);
+
+    /*
+        Etwas transparent
+    */
+    opacity: 0.20;
+
+    /*
+        Diese Elemente sollen nicht anklickbar sein
+    */
+    pointer-events: none;
+
+    /*
+        Im Hintergrund
+    */
+    z-index: 0;
+}
+
+/*
+    Jede blur-Fläche bekommt eigene Größe, Farbe und Position
+*/
+.background-blur-1 {
+    width: 28vw;
+    height: 14vw;
+    min-width: 220px;
+    min-height: 110px;
+    max-width: 520px;
+    max-height: 260px;
+    background: radial-gradient(circle, rgba(85, 150, 80, 0.95) 0%, rgba(85, 150, 80, 0) 70%);
+    top: 6%;
+    left: 2%;
+    transform: rotate(-25deg);
+}
+
+.background-blur-2 {
+    width: 24vw;
+    height: 13vw;
+    min-width: 220px;
+    min-height: 110px;
+    max-width: 470px;
+    max-height: 250px;
+    background: radial-gradient(circle, rgba(115, 180, 95, 0.95) 0%, rgba(115, 180, 95, 0) 70%);
+    top: 10%;
+    right: 4%;
+    transform: rotate(28deg);
+}
+
+.background-blur-3 {
+    width: 30vw;
+    height: 15vw;
+    min-width: 240px;
+    min-height: 120px;
+    max-width: 560px;
+    max-height: 280px;
+    background: radial-gradient(circle, rgba(75, 145, 70, 0.95) 0%, rgba(75, 145, 70, 0) 70%);
+    bottom: 8%;
+    left: 4%;
+    transform: rotate(18deg);
+}
+
+.background-blur-4 {
+    width: 28vw;
+    height: 14vw;
+    min-width: 230px;
+    min-height: 110px;
+    max-width: 520px;
+    max-height: 260px;
+    background: radial-gradient(circle, rgba(95, 170, 90, 0.95) 0%, rgba(95, 170, 90, 0) 70%);
+    bottom: 6%;
+    right: 6%;
+    transform: rotate(-20deg);
+}
+
+.background-blur-5 {
+    width: 18vw;
+    height: 10vw;
+    min-width: 170px;
+    min-height: 95px;
+    max-width: 340px;
+    max-height: 190px;
+    background: radial-gradient(circle, rgba(135, 190, 110, 0.90) 0%, rgba(135, 190, 110, 0) 70%);
+    top: 42%;
+    left: 26%;
+    transform: rotate(-40deg);
+}
+
+.background-blur-6 {
+    width: 18vw;
+    height: 10vw;
+    min-width: 170px;
+    min-height: 95px;
+    max-width: 340px;
+    max-height: 190px;
+    background: radial-gradient(circle, rgba(110, 175, 95, 0.90) 0%, rgba(110, 175, 95, 0) 70%);
+    top: 48%;
+    right: 26%;
+    transform: rotate(40deg);
+}
+
+/* Sichtbare Bonsai-Icons hinter dem Glas */
+/*
+    Grundstil für die Bonsai-Emojis im Hintergrund
+*/
+.background-bonsai {
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+
+    /*
+        Sichtbarkeit des Emoji-Hintergrunds
+    */
+    opacity: 0.34;
+
+    /*
+        Nur leicht verschwommen
+    */
+    filter: blur(1.5px);
+
+    /*
+        Sehr groß, aber responsiv
+    */
+    font-size: clamp(10rem, 16vw, 20rem);
+
+    /*
+        Ganz leichter Leuchteffekt
+    */
+    text-shadow: 0 0 18px rgba(90, 140, 90, 0.16);
+}
+
+/*
+    Jede Bonsai-Deko bekommt eigene Position und Drehung
+*/
+.background-bonsai-1 {
+    top: 7%;
+    left: 4%;
+    transform: rotate(-16deg);
+}
+
+.background-bonsai-2 {
+    top: 10%;
+    right: 5%;
+    transform: rotate(14deg);
+}
+
+.background-bonsai-3 {
+    top: 40%;
+    left: 1%;
+    transform: rotate(-10deg);
+}
+
+.background-bonsai-4 {
+    top: 44%;
+    right: 1%;
+    transform: rotate(10deg);
+}
+
+.background-bonsai-5 {
+    bottom: 4%;
+    left: 12%;
+    transform: rotate(-12deg);
+}
+
+.background-bonsai-6 {
+    bottom: 5%;
+    right: 12%;
+    transform: rotate(12deg);
+}
+
+/*
+    Hauptcontainer der App
+*/
+.app {
+    position: relative;
+    z-index: 1; /* über dem Hintergrund */
+    width: 100%;
+    min-height: 100vh;
+
+    /*
+        Außenabstand rund um die komplette App
+    */
+    padding: var(--page-padding);
+}
+
+/*
+    Große Hauptkarte
+*/
+.main-card {
+    width: 100%;
+
+    /*
+        Fast volle Bildschirmhöhe,
+        minus den äußeren page-padding-Rand oben und unten
+    */
+    min-height: calc(100vh - (var(--page-padding) * 2));
+
+    border-radius: var(--radius);
+    padding: var(--card-padding);
+
+    /*
+        Grid-Layout mit 3 Zeilen:
+        1. Kopfbereich
+        2. Hauptinhalt
+        3. Unterer Bereich
+    */
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+
+    gap: var(--gap);
+
+    /*
+        Fast unsichtbarer Hintergrund
+    */
+    background: rgba(255, 255, 255, 0.005);
+}
+
+/* Extrem transparentes Glossy Glas */
+/*
+    Grundstil für alle Glas-Elemente
+*/
+.glass {
+    position: relative;
+    overflow: hidden;
+
+    /*
+        Sehr transparente Fläche
+    */
+    background: var(--glass-bg);
+
+    /*
+        Ganz leichter Glas-Rahmen
+    */
+    border: 1px solid var(--glass-border);
+
+    /*
+        blur hinter dem Element
+        -> das ist der Kern von Glassmorphism
+    */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    /*
+        Äußerer Schatten + innere Glanzlinien
+    */
+    box-shadow:
+        0 4px 10px var(--glass-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/*
+    Glanzstreifen über der Glasfläche
+*/
+.glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    /*
+        Diagonaler heller Glanzverlauf
+    */
+    background: linear-gradient(
+        115deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.03) 25%,
+        rgba(255, 255, 255, 0.08) 48%,
+        rgba(255, 255, 255, 0.02) 72%,
+        rgba(255, 255, 255, 0) 100%
+    );
+
+    /*
+        Schiebt und schrägt den Verlauf
+    */
+    transform: translateX(-30%) skewX(-18deg);
+
+    pointer-events: none;
+}
+
+/*
+    Heller Bereich oben auf dem Glas
+*/
+.glass::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 62%;
+
+    /*
+        Heller Verlauf nur im oberen Teil
+    */
+    background: linear-gradient(
+        to bottom,
+        var(--glass-highlight),
+        rgba(255, 255, 255, 0.02),
+        rgba(255, 255, 255, 0)
+    );
+
+    pointer-events: none;
+}
+
+/*
+    Oberer Bereich mit Titel und Uhr
+*/
+.top-bar {
+    position: relative;
+    min-height: clamp(100px, 15vh, 160px);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/*
+    Container für Titel und Untertitel
+*/
+.title-wrap {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+
+    /*
+        Platz links und rechts lassen,
+        damit die Uhr oben rechts genug Raum hat
+    */
+    padding-inline: clamp(8px, 10vw, 260px);
+}
+
+/*
+    Haupttitel
+*/
+.main-title {
+    font-size: var(--title-size);
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+/*
+    Untertitel
+*/
+.subtitle {
+    font-size: var(--subtitle-size);
+}
+
+/*
+    Uhr-Box oben rechts
+*/
+.clock-box {
+    position: absolute;
+    right: 0;
+    top: 50%;
+
+    /*
+        Zentriert die Box vertikal
+    */
+    transform: translateY(-50%);
+
+    min-width: clamp(150px, 14vw, 240px);
+    padding: clamp(14px, 1.6vw, 22px) clamp(18px, 2vw, 30px);
+    border-radius: var(--panel-radius);
+    text-align: center;
+    font-size: var(--clock-size);
+    z-index: 1;
+}
+
+/*
+    Mittlerer Hauptbereich
+    3 Spalten:
+    links, mitte, rechts
+*/
+.content-area {
+    min-height: 0;
+    display: grid;
+
+    /*
+        minmax(min, max)
+        linke und rechte Spalte mindestens 240px,
+        mittlere mindestens 320px und etwas breiter
+    */
+    grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.25fr) minmax(240px, 1fr);
+
+    gap: var(--gap);
+}
+
+/*
+    Gemeinsamer Stil für Seitenboxen und die Baum-Box
+*/
+.side-box,
+.image-box {
+    min-height: 540px;
+    border-radius: var(--panel-radius);
+    padding: clamp(16px, 1.7vw, 26px);
+}
+
+/*
+    Titel in Boxen
+*/
+.box-title {
+    font-size: var(--section-title-size);
+    margin-bottom: clamp(12px, 1.2vw, 20px);
+    position: relative;
+    z-index: 1;
+}
+
+/*
+    Liste mit den 4 Zeilen
+*/
+.info-list {
+    display: grid;
+    grid-template-rows: repeat(4, 1fr);
+    gap: clamp(10px, 1vw, 16px);
+    min-height: 420px;
+}
+
+/*
+    Einzelne Informationszeile
+*/
+.info-row {
+    display: flex;
+    align-items: center;
+
+    /*
+        Innenabstand links/rechts
+    */
+    padding: 0 clamp(16px, 1.4vw, 24px);
+
+    border-radius: var(--row-radius);
+
+    /*
+        Sehr leicht sichtbarer Hintergrund
+    */
+    background: var(--inner-panel-bg);
+
+    font-size: var(--text-size);
+    position: relative;
+    z-index: 1;
+    min-height: 86px;
+
+    /*
+        Lange Texte dürfen umbrechen
+    */
+    overflow-wrap: anywhere;
+
+    /*
+        Ganz feiner Rand
+    */
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/*
+    Mittlere Box mit dem Bonsai
+*/
+.image-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(12px, 1.4vw, 20px);
+}
+
+/*
+    Das SVG selbst
+*/
+.bonsai-tree {
+    width: 82%;
+    height: 82%;
+    max-width: 82%;
+    max-height: 82%;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+/*
+    Unterer Bereich:
+    links Fortschrittsbalken
+    rechts Buttons
+*/
+.bottom-area {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--gap);
+    align-items: center;
+    min-height: 110px;
+    padding-top: 4px;
+}
+
+/*
+    Container um den Balken
+*/
+.progress-wrap {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+/*
+    Äußerer Fortschrittsbalken
+*/
+.progress-bar {
+    width: 100%;
+    height: 26px;
+    border-radius: 999px;
+    overflow: hidden;
+
+    /*
+        Sehr heller Hintergrund
+    */
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/*
+    Innere Füllung des Fortschrittsbalkens
+*/
+.progress-fill {
+    width: 58%;
+    height: 100%;
+    border-radius: 999px;
+
+    /*
+        Grüner Verlauf
+    */
+    background: linear-gradient(90deg, #8be2ad, #63c76e);
+
+    /*
+        Wenn sich Breite ändert, passiert das weich animiert
+    */
+    transition: width 0.35s ease;
+}
+
+/*
+    Container für Buttons
+*/
+.button-area {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+/*
+    Stil der Buttons
+*/
+.action-button {
+    border: none;
+    border-radius: 18px;
+    padding: 16px 22px;
+    font-size: clamp(1rem, 1.1vw, 1.2rem);
+    color: #111;
+    cursor: pointer;
+
+    /*
+        Hover/Click weich animieren
+    */
+    transition: transform 0.15s ease, background 0.15s ease;
+
+    z-index: 1;
+}
+
+/*
+    Wenn Maus über dem Button ist
+*/
+.action-button:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/*
+    Wenn Button gedrückt wird
+*/
+.action-button:active {
+    transform: scale(0.98);
+}
+
+/* Tablet */
+/*
+    Media Query:
+    Gilt nur bei Bildschirmen bis 1200px Breite
+*/
+@media (max-width: 1200px) {
+    /*
+        Statt 3 Spalten nur noch eine Spalte untereinander
+    */
+    .content-area {
+        grid-template-columns: 1fr;
+    }
+
+    /*
+        Boxen werden kleiner
+    */
+    .side-box,
+    .image-box {
+        min-height: 380px;
+    }
+
+    /*
+        Liste darf sich automatisch anpassen
+    */
+    .info-list {
+        min-height: auto;
+    }
+
+    /*
+        Unten wird Fortschritt + Buttons untereinander statt nebeneinander
+    */
+    .bottom-area {
+        grid-template-columns: 1fr;
+    }
+
+    /*
+        Buttons mittig
+    */
+    .button-area {
+        justify-content: center;
+    }
+
+    /*
+        Uhr verliert absolute Position
+        und wird normal im Layout eingefügt
+    */
+    .clock-box {
+        position: static;
+        transform: none;
+        margin-inline: auto;
+        margin-top: 10px;
+    }
+
+    /*
+        Kopfbereich untereinander statt nebeneinander
+    */
+    .top-bar {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /*
+        Extra Innenabstand für den Titel nicht mehr nötig
+    */
+    .title-wrap {
+        padding-inline: 0;
+    }
+
+    /*
+        Hintergrund-Bonsais etwas schwächer
+    */
+    .background-bonsai {
+        opacity: 0.24;
+        filter: blur(1.5px);
+    }
+}
+
+/* Handy */
+/*
+    Noch kleinere Bildschirme bis 640px
+*/
+@media (max-width: 640px) {
+    /*
+        Weniger Innenabstand in der Hauptkarte
+    */
+    .main-card {
+        padding: 12px;
+    }
+
+    /*
+        Boxen kleiner
+    */
+    .side-box,
+    .image-box {
+        min-height: 300px;
+        padding: 16px;
+    }
+
+    /*
+        Kleinere Zeilenhöhe und engerer Innenabstand
+    */
+    .info-row {
+        min-height: 72px;
+        padding: 12px 14px;
+    }
+
+    /*
+        Buttons untereinander
+    */
+    .button-area {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    /*
+        Jeder Button über volle Breite
+    */
+    .action-button {
+        width: 100%;
+    }
+
+    /*
+        Bonsai wird etwas größer innerhalb seiner Box skaliert
+    */
+    .bonsai-tree {
+        width: 90%;
+        height: 90%;
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    /*
+        Hintergrund-Bonsais kleiner und schwächer
+    */
+    .background-bonsai {
+        font-size: clamp(5rem, 18vw, 9rem);
+        opacity: 0.16;
+        filter: blur(1px);
+    }
+}

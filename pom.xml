@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    XML-Deklaration:
+    - version="1.0" sagt, welche XML-Version verwendet wird
+    - encoding="UTF-8" sagt, dass die Datei UTF-8 als Zeichensatz benutzt
+    Das ist wichtig für Umlaute und Sonderzeichen.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+        <project> ist das Wurzelelement deiner Maven-Datei.
+        Alles, was zu deinem Maven-Projekt gehört, steht innerhalb dieses Tags.
+
+        xmlns=...
+        -> Das ist der XML-Namespace von Maven.
+        -> Er sagt: "Diese Datei folgt der Maven-POM-Struktur."
+
+        xmlns:xsi=...
+        -> Das ist ein zusätzlicher Namespace für XML-Schema-Definitionen.
+
+        xsi:schemaLocation=...
+        -> Hier wird angegeben, wo das passende XML-Schema für diese Datei liegt.
+        -> Damit können Tools wie IntelliJ oder Maven prüfen,
+           ob deine pom.xml korrekt aufgebaut ist.
+    -->
+
+    <modelVersion>4.0.0</modelVersion>
+    <!--
+        modelVersion gibt an, welche Version des POM-Modells verwendet wird.
+        Bei Maven-Projekten ist fast immer 4.0.0 korrekt.
+        Das hat nichts mit deiner Projektversion zu tun,
+        sondern nur mit dem internen Aufbau der pom.xml.
+    -->
+
+    <groupId>org.example</groupId>
+    <!--
+        groupId = die "Gruppe" oder der Namensraum deines Projekts.
+
+        Meist nimmt man hier einen Paketnamen in umgekehrter Form.
+        Beispiel:
+        - de.manuel
+        - de.manuel.smartpot
+        - com.meinefirma
+
+        Aktuell steht hier:
+        org.example
+
+        Das ist ein Standard-Platzhalter.
+        Für dein Projekt wäre sinnvoller zum Beispiel:
+        de.manuel
+        oder
+        de.manuel.smartpot
+
+        groupId hilft Maven, Projekte eindeutig zu unterscheiden.
+    -->
+
+    <artifactId>Smart_Pot</artifactId>
+    <!--
+        artifactId = der Name deines Projekts / Artefakts.
+
+        Das ist der eigentliche Projektname, den Maven für das erzeugte Ergebnis benutzt.
+        Zum Beispiel könnte daraus später eine Datei entstehen wie:
+
+        Smart_Pot-1.0-SNAPSHOT.jar
+
+        artifactId sollte möglichst kurz und eindeutig sein.
+    -->
+
+    <version>1.0-SNAPSHOT</version>
+    <!--
+        version = die aktuelle Version deines Projekts.
+
+        Hier:
+        1.0-SNAPSHOT
+
+        Bedeutung:
+        - 1.0 = erste Hauptversion
+        - SNAPSHOT = noch in Entwicklung, also noch keine "fertige Release-Version"
+
+        Typische Beispiele:
+        - 1.0-SNAPSHOT   -> Entwicklungsstand
+        - 1.0            -> fertige Version
+        - 1.1            -> nächste fertige Version
+        - 2.0            -> größere neue Version
+
+        SNAPSHOT bedeutet:
+        Maven behandelt diese Version als veränderbar / unfertig.
+    -->
+
+    <properties>
+        <!--
+            <properties> ist ein Bereich für zentrale Einstellungen.
+            Hier kannst du Werte definieren, die Maven an mehreren Stellen benutzen kann.
+
+            Vorteil:
+            - Alles an einer Stelle gepflegt
+            - Leichter änderbar
+            - Bessere Übersicht
+        -->
+
+        <maven.compiler.source>23</maven.compiler.source>
+        <!--
+            Gibt an, mit welcher Java-Quellsprachversion kompiliert werden soll.
+
+            Hier: 23
+            Das bedeutet:
+            - Der Compiler erwartet Java-23-Syntax
+            - Du kannst Sprachfeatures aus Java 23 verwenden
+
+            Beispiel:
+            Wenn hier 17 stünde, dann dürftest du nur Java-17-Features benutzen.
+        -->
+
+        <maven.compiler.target>23</maven.compiler.target>
+        <!--
+            Gibt an, für welche Java-Zielversion der Bytecode erzeugt werden soll.
+
+            Hier: 23
+            Das bedeutet:
+            - Das kompilierte Programm ist für Java 23 gedacht
+
+            source = "Welche Sprache darf ich schreiben?"
+            target = "Für welche Java-Version soll das Ergebnis laufen?"
+
+            Meist setzt man source und target gleich.
+        -->
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--
+            Gibt den Zeichensatz für den Build-Prozess an.
+
+            Hier: UTF-8
+            Das ist sehr wichtig, damit:
+            - Umlaute korrekt bleiben
+            - Sonderzeichen nicht kaputtgehen
+            - Dateien überall konsistent gelesen werden
+
+            UTF-8 ist heute der Standard und fast immer die richtige Wahl.
+        -->
+    </properties>
+
+</project>
+        <!--
+            Schließt das gesamte Maven-Projekt ab.
+        -->
