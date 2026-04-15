@@ -66,8 +66,6 @@ public class Main {
             json = "{\"wert\":" + aktuellerFeuchtigkeitswert +
                     ",\"anzeige\":\"" + aktuellerFeuchtigkeitswert + " %\",\"status\":\"ok\"}";
         }
-        //test
-
         byte[] response = json.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
         exchange.sendResponseHeaders(200, response.length);
@@ -84,7 +82,7 @@ public class Main {
         }
 
         String query = exchange.getRequestURI().getQuery();
-        Map<String, String> params = parseQuery(query);
+        Map<String, String> params = parseQuery(query);                   //holt die werte
         String wert = params.getOrDefault("wert", "");
 
         Integer prozent = extrahiereProzent(wert);
