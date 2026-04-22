@@ -12,11 +12,6 @@ function updateClock() {
     liveClock.textContent = now.toLocaleTimeString("de-DE");
 }
 
-function getFormattedDateTime() {
-    const now = new Date();
-    return now.toLocaleString("de-DE");
-}
-
 function updateMoisture(value) {
     feuchtigkeit.textContent = value + " %";
     progressFill.style.width = value + "%";
@@ -49,16 +44,74 @@ async function fetchStatus() {
     }
 }
 
-fertilizedBtn.addEventListener("click", () => {
-    lastFertilized.textContent = getFormattedDateTime();
-});
+async function loadActions() {
+    try {
+        const response = await fetch("/api/actions");
+        const data = await response.json();
 
-wateredBtn.addEventListener("click", () => {
-    lastWatered.textContent = getFormattedDateTime();
-});
+        if (data.letzterGiessZeitpunkt) {
+            lastWatered.textContent = data.letzterGiessZeitpunkt;
+        } else {
+            lastWatered.textContent = "Noch nicht gespeichert";
+        }
+
+        if (data.letzterDuengeZeitpunkt) {
+            lastFertilized.textContent = data.letzterDuengeZeitpunkt;
+        } else {
+            lastFertilized.textContent = "Noch nicht gespeichert";
+        }
+    } catch (error) {
+        console.error("Fehler beim Laden der gespeicherten Aktionen:", error);
+        lastWatered.textContent = "Fehler beim Laden";
+        lastFertilized.textContent = "Fehler beim Laden";
+    }
+}
+
+async function saveWatered() {
+    try {
+        const response = await fetch("/api/giessen", {
+            method: "POST"
+        });
+
+        const data = await response.json();
+
+        if (data.status === "ok") {
+            lastWatered.textContent = data.zeitpunkt;
+        } else {
+            lastWatered.textContent = "Speichern fehlgeschlagen";
+        }
+    } catch (error) {
+        console.error("Fehler beim Speichern von 'gegossen':", error);
+        lastWatered.textContent = "Speichern fehlgeschlagen";
+    }
+}
+
+async function saveFertilized() {
+    try {
+        const response = await fetch("/api/duengen", {
+            method: "POST"
+        });
+
+        const data = await response.json();
+
+        if (data.status === "ok") {
+            lastFertilized.textContent = data.zeitpunkt;
+        } else {
+            lastFertilized.textContent = "Speichern fehlgeschlagen";
+        }
+    } catch (error) {
+        console.error("Fehler beim Speichern von 'gedüngt':", error);
+        lastFertilized.textContent = "Speichern fehlgeschlagen";
+    }
+}
+
+fertilizedBtn.addEventListener("click", saveFertilized);
+wateredBtn.addEventListener("click", saveWatered);
 
 setInterval(updateClock, 1000);
 updateClock();
 
 setInterval(fetchStatus, 1000);
 fetchStatus();
+
+loadActions();
