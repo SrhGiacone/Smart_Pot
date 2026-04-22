@@ -741,9 +741,14 @@ body {
     background: linear-gradient(90deg, #8be2ad, #63c76e);
 
     /*
-        Wenn sich Breite ändert, passiert das weich animiert
+        Weichere und langsamere Animation
     */
-    transition: width 0.35s ease;
+    transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+
+    /*
+        Macht die Bewegung oft noch flüssiger
+    */
+    will-change: width;
 }
 
 /*

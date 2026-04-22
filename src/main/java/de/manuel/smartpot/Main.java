@@ -13,93 +13,85 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 
 public class Main {
 
-    // Speichert den zuletzt empfangenen Feuchtigkeitswert
-    // volatile = damit mehrere Threads immer den aktuellen Wert sehen
     private static volatile Integer aktuellerFeuchtigkeitswert = null;
 
-    // ntfy Topic-Name
-    // Diesen Topic-Namen musst du in der ntfy-App abonnieren
     private static final String NTFY_TOPIC = "Smart-Pot";
-
-    // Fertige URL für ntfy
     private static final String NTFY_URL = "https://ntfy.sh/" + NTFY_TOPIC;
 
-    // Merkt sich, ob schon mindestens ein erster Messwert angekommen ist
-    // Damit beim allerersten Wert nicht sofort eine Benachrichtigung gesendet wird
     private static volatile boolean initialisiert = false;
-
-    // Merkt sich, ob der Wert zuletzt über 75% war
-    // Dadurch schicken wir die "Danke fürs Gießen"-Nachricht nur beim Übergang über 75%
     private static volatile boolean warUeber75 = false;
-
-    // Merkt sich die letzte Trockenheits-Schwelle, für die schon benachrichtigt wurde
-    // Beispiel: Wenn schon eine Meldung bei 25% gesendet wurde, soll sie nicht nochmal gesendet werden
     private static volatile Integer letzteTrockenSchwelle = null;
 
-    public static void main(String[] args) throws IOException {
+    // Datei, in der gespeichert wird, wann zuletzt gegossen und gedüngt wurde
+    private static final String SPEICHER_DATEI = "smartpot-speicher.properties";
 
-        // HTTP-Server auf Port 8080 starten
-        // 0.0.0.0 = erreichbar auf localhost und im Netzwerk
+    // Format für Datum + Uhrzeit
+    private static final DateTimeFormatter ZEIT_FORMAT =
+            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+
+    // Gespeicherte Zeitpunkte
+    private static volatile String letzterGiessZeitpunkt = "";
+    private static volatile String letzterDuengeZeitpunkt = "";
+
+    public static void main(String[] args) throws IOException {
+        // Beim Start gespeicherte Daten laden
+        ladeGespeicherteDaten();
+
         HttpServer server = HttpServer.create(new InetSocketAddress("0.0.0.0", 8080), 0);
 
-        // Route für Startseite
         server.createContext("/", Main::handleIndex);
-
-        // Route für CSS-Datei
         server.createContext("/style.css", exchange ->
                 serveStaticFile(exchange, "/web/style.css", "text/css; charset=utf-8"));
-
-        // Route für JavaScript-Datei
         server.createContext("/app.js", exchange ->
                 serveStaticFile(exchange, "/web/app.js", "application/javascript; charset=utf-8"));
 
-        // API-Route für aktuellen Status als JSON
         server.createContext("/api/status", Main::handleStatus);
 
-        // Route, über die der ESP8266 neue Messwerte sendet
+        // Neue API-Endpunkte für gespeicherte Aktionen
+        server.createContext("/api/actions", Main::handleActions);
+        server.createContext("/api/giessen", Main::handleGiessen);
+        server.createContext("/api/duengen", Main::handleDuengen);
+
+        // Messwert vom ESP
         server.createContext("/data", Main::handleData);
 
-        // Thread-Pool für mehrere gleichzeitige Anfragen
         server.setExecutor(Executors.newCachedThreadPool());
-
-        // Server starten
         server.start();
 
-        // Infos in die Konsole schreiben
         System.out.println("Server läuft auf:");
         System.out.println("http://localhost:8080");
         System.out.println("Im Netzwerk erreichbar über die IP deines PCs, z. B.:");
         System.out.println("http://DEINE-PC-IP:8080");
         System.out.println("ntfy Topic: " + NTFY_TOPIC);
+        System.out.println("Speicherdatei: " + SPEICHER_DATEI);
 
-        // Browser automatisch öffnen
         openBrowser("http://localhost:8080");
     }
 
-    // Behandelt Aufrufe auf "/"
     private static void handleIndex(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
 
-        // Nur exakt "/" erlauben
         if (!"/".equals(path)) {
             sendText(exchange, 404, "Seite nicht gefunden");
             return;
         }
 
-        // index.html aus den Ressourcen laden und zurückgeben
         serveStaticFile(exchange, "/web/index.html", "text/html; charset=utf-8");
     }
 
-    // Liefert den aktuellen Feuchtigkeitsstatus als JSON zurück
     private static void handleStatus(HttpExchange exchange) throws IOException {
-
-        // Nur GET-Anfragen erlauben
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
             sendText(exchange, 405, "Methode nicht erlaubt");
             return;
@@ -107,124 +99,125 @@ public class Main {
 
         String json;
 
-        // Wenn noch kein Messwert da ist
         if (aktuellerFeuchtigkeitswert == null) {
             json = "{\"wert\":null,\"anzeige\":\"Noch keine Daten\",\"status\":\"waiting\"}";
         } else {
-            // Sonst aktuellen Wert ins JSON schreiben
             json = "{\"wert\":" + aktuellerFeuchtigkeitswert +
                     ",\"anzeige\":\"" + aktuellerFeuchtigkeitswert + " %\",\"status\":\"ok\"}";
         }
 
-        // JSON als UTF-8 in Bytes umwandeln
-        byte[] response = json.getBytes(StandardCharsets.UTF_8);
-
-        // Header setzen
-        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
-
-        // Antwort senden
-        exchange.sendResponseHeaders(200, response.length);
-
-        try (OutputStream os = exchange.getResponseBody()) {
-            os.write(response);
-        }
+        sendJson(exchange, 200, json);
     }
 
-    // Verarbeitet neue Messwerte vom ESP8266
-    // Beispiel-Aufruf: /data?wert=25
-    private static void handleData(HttpExchange exchange) throws IOException {
-
-        // Nur GET-Anfragen erlauben
+    // Gibt die gespeicherten Zeitpunkte für Gießen und Düngen zurück
+    private static void handleActions(HttpExchange exchange) throws IOException {
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
             sendText(exchange, 405, "Methode nicht erlaubt");
             return;
         }
 
-        // Query-Teil der URL holen, also z. B. "wert=25"
+        String json = "{"
+                + "\"letzterGiessZeitpunkt\":" + jsonStringOrNull(letzterGiessZeitpunkt) + ","
+                + "\"letzterDuengeZeitpunkt\":" + jsonStringOrNull(letzterDuengeZeitpunkt)
+                + "}";
+
+        sendJson(exchange, 200, json);
+    }
+
+    // Speichert "zuletzt gegossen"
+    private static void handleGiessen(HttpExchange exchange) throws IOException {
+        if (!istGetOderPost(exchange)) {
+            sendText(exchange, 405, "Methode nicht erlaubt");
+            return;
+        }
+
+        String zeitpunkt = LocalDateTime.now().format(ZEIT_FORMAT);
+        letzterGiessZeitpunkt = zeitpunkt;
+        speichereDaten();
+
+        String json = "{"
+                + "\"status\":\"ok\","
+                + "\"aktion\":\"giessen\","
+                + "\"zeitpunkt\":\"" + escapeJson(zeitpunkt) + "\""
+                + "}";
+
+        sendJson(exchange, 200, json);
+    }
+
+    // Speichert "zuletzt gedüngt"
+    private static void handleDuengen(HttpExchange exchange) throws IOException {
+        if (!istGetOderPost(exchange)) {
+            sendText(exchange, 405, "Methode nicht erlaubt");
+            return;
+        }
+
+        String zeitpunkt = LocalDateTime.now().format(ZEIT_FORMAT);
+        letzterDuengeZeitpunkt = zeitpunkt;
+        speichereDaten();
+
+        String json = "{"
+                + "\"status\":\"ok\","
+                + "\"aktion\":\"duengen\","
+                + "\"zeitpunkt\":\"" + escapeJson(zeitpunkt) + "\""
+                + "}";
+
+        sendJson(exchange, 200, json);
+    }
+
+    private static void handleData(HttpExchange exchange) throws IOException {
+        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            sendText(exchange, 405, "Methode nicht erlaubt");
+            return;
+        }
+
         String query = exchange.getRequestURI().getQuery();
-
-        // Query in eine Map umwandeln
         Map<String, String> params = parseQuery(query);
-
-        // Wert auslesen, falls nicht vorhanden: leerer String
         String wert = params.getOrDefault("wert", "");
 
-        // Aus String nur die Prozentzahl extrahieren
         Integer prozent = extrahiereProzent(wert);
 
-        // Prüfen ob der Wert gültig ist
         if (prozent == null || prozent < 0 || prozent > 100) {
             sendText(exchange, 400, "Ungültiger Wert. Erlaubt sind nur 0 bis 100.");
             return;
         }
 
-        // Aktuellen Feuchtigkeitswert speichern
         aktuellerFeuchtigkeitswert = prozent;
-
         System.out.println("Empfangen vom ESP8266: " + prozent + " %");
 
-        // Beim ersten Messwert nur Startzustand setzen, noch keine Nachricht schicken
         if (!initialisiert) {
             initialisiert = true;
-
-            // Merken, ob der Wert direkt schon über 75 ist
             warUeber75 = prozent > 75;
-
-            // Merken, in welcher Trockenheitsstufe wir gerade sind
             letzteTrockenSchwelle = ermittleTrockenSchwelle(prozent);
-
             System.out.println("Startzustand gesetzt.");
             sendText(exchange, 200, "OK empfangen: " + prozent + " %");
             return;
         }
 
-        // Wenn der Wert über 75 steigt, soll eine Dankesnachricht gesendet werden
         if (prozent > 75) {
-
-            // Nur senden, wenn wir vorher noch NICHT über 75 waren
             if (!warUeber75) {
                 sendeDankeBenachrichtigung(prozent);
             }
-
-            // Zustand merken
             warUeber75 = true;
         } else {
-            // Wenn nicht über 75, zurücksetzen
             warUeber75 = false;
         }
 
-        // Wenn der Wert über 30 liegt, ist der Topf nicht trocken genug für Warnstufen
         if (prozent > 30) {
-
-            // Trocken-Schwelle zurücksetzen
-            // Dadurch kann beim nächsten Absinken wieder neu benachrichtigt werden
             letzteTrockenSchwelle = null;
-
         } else {
-            // Aktuelle Trockenheits-Schwelle ermitteln
             Integer aktuelleTrockenSchwelle = ermittleTrockenSchwelle(prozent);
 
             if (aktuelleTrockenSchwelle != null) {
-
-                // Nur benachrichtigen, wenn wir tiefer gefallen sind als die letzte bekannte Schwelle
                 if (letzteTrockenSchwelle == null || aktuelleTrockenSchwelle < letzteTrockenSchwelle) {
                     sendeTrockenBenachrichtigung(aktuelleTrockenSchwelle, prozent);
-
-                    // Neue Schwelle merken, damit nicht doppelt gesendet wird
                     letzteTrockenSchwelle = aktuelleTrockenSchwelle;
                 }
             }
         }
 
-        // Antwort an den ESP senden
         sendText(exchange, 200, "OK empfangen: " + prozent + " %");
     }
 
-    // Ordnet einen Prozentwert einer Trockenheits-Schwelle zu
-    // Beispiel:
-    // 29 -> 30
-    // 22 -> 25
-    // 4  -> 5
     private static Integer ermittleTrockenSchwelle(int prozent) {
         if (prozent <= 0) {
             return 0;
@@ -247,12 +240,9 @@ public class Main {
         if (prozent <= 30) {
             return 30;
         }
-
-        // Über 30 gibt es keine Trockenheitswarnung
         return null;
     }
 
-    // Baut abhängig von der Schwelle die passende Warnnachricht zusammen
     private static void sendeTrockenBenachrichtigung(int schwelle, int prozent) {
         String title;
         String message;
@@ -298,49 +288,36 @@ public class Main {
                 return;
         }
 
-        // Fertige Nachricht an ntfy senden
         sendeNtfyBenachrichtigung(title, message, priority);
     }
 
-    // Sendet eine Dankesnachricht, wenn nach dem Gießen der Wert über 75% steigt
     private static void sendeDankeBenachrichtigung(int prozent) {
         String title = "Nachricht vom Baum";
         String message = "Danke fürs Gießen 🌳 Mir geht's wieder richtig gut! Aktuelle Feuchtigkeit: " + prozent + "%";
-
         sendeNtfyBenachrichtigung(title, message, "3");
     }
 
-    // Sendet eine Push-Nachricht an ntfy
     private static void sendeNtfyBenachrichtigung(String title, String message, String priority) {
         HttpURLConnection connection = null;
 
         try {
-            // Verbindung zu ntfy aufbauen
             URL url = new URL(NTFY_URL);
             connection = (HttpURLConnection) url.openConnection();
-
-            // POST = Nachricht senden
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
-
-            // Zeitlimits setzen
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(5000);
 
-            // HTTP-Header setzen
             connection.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
             connection.setRequestProperty("Title", title);
             connection.setRequestProperty("Priority", priority);
 
-            // Nachrichtentext in Bytes umwandeln
             byte[] data = message.getBytes(StandardCharsets.UTF_8);
 
-            // Daten an ntfy schicken
             try (OutputStream os = connection.getOutputStream()) {
                 os.write(data);
             }
 
-            // Antwortcode lesen
             int responseCode = connection.getResponseCode();
             System.out.println("ntfy Response: " + responseCode + " | " + title + " | " + message);
         } catch (Exception e) {
@@ -353,32 +330,59 @@ public class Main {
         }
     }
 
-    // Liefert eine Datei aus dem resources/web Ordner aus
-    // z. B. index.html, style.css oder app.js
-    private static void serveStaticFile(HttpExchange exchange, String resourcePath, String contentType) throws IOException {
+    // Lädt gespeicherte Daten beim Programmstart
+    private static void ladeGespeicherteDaten() {
+        Path path = Paths.get(SPEICHER_DATEI);
 
-        // Nur GET-Anfragen erlauben
+        if (!Files.exists(path)) {
+            System.out.println("Keine Speicherdatei gefunden. Starte mit leeren Werten.");
+            return;
+        }
+
+        Properties properties = new Properties();
+
+        try (InputStream is = Files.newInputStream(path)) {
+            properties.load(is);
+
+            letzterGiessZeitpunkt = properties.getProperty("letzterGiessZeitpunkt", "");
+            letzterDuengeZeitpunkt = properties.getProperty("letzterDuengeZeitpunkt", "");
+
+            System.out.println("Gespeicherte Daten geladen.");
+        } catch (IOException e) {
+            System.out.println("Fehler beim Laden der Speicherdatei:");
+            e.printStackTrace();
+        }
+    }
+
+    // Speichert aktuelle Daten in Datei
+    private static void speichereDaten() {
+        Properties properties = new Properties();
+        properties.setProperty("letzterGiessZeitpunkt", letzterGiessZeitpunkt == null ? "" : letzterGiessZeitpunkt);
+        properties.setProperty("letzterDuengeZeitpunkt", letzterDuengeZeitpunkt == null ? "" : letzterDuengeZeitpunkt);
+
+        try (OutputStream os = Files.newOutputStream(Paths.get(SPEICHER_DATEI))) {
+            properties.store(os, "Smart Pot gespeicherte Daten");
+            System.out.println("Daten gespeichert.");
+        } catch (IOException e) {
+            System.out.println("Fehler beim Speichern der Daten:");
+            e.printStackTrace();
+        }
+    }
+
+    private static void serveStaticFile(HttpExchange exchange, String resourcePath, String contentType) throws IOException {
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
             sendText(exchange, 405, "Methode nicht erlaubt");
             return;
         }
 
-        // Datei aus den Projekt-Ressourcen laden
         try (InputStream is = Main.class.getResourceAsStream(resourcePath)) {
-
-            // Wenn Datei nicht gefunden wurde
             if (is == null) {
                 sendText(exchange, 404, "Datei nicht gefunden: " + resourcePath);
                 return;
             }
 
-            // Ganze Datei lesen
             byte[] data = is.readAllBytes();
-
-            // Content-Type setzen
             exchange.getResponseHeaders().set("Content-Type", contentType);
-
-            // Datei senden
             exchange.sendResponseHeaders(200, data.length);
 
             try (OutputStream os = exchange.getResponseBody()) {
@@ -387,10 +391,8 @@ public class Main {
         }
     }
 
-    // Sendet einfachen Text als HTTP-Antwort zurück
     private static void sendText(HttpExchange exchange, int statusCode, String text) throws IOException {
         byte[] response = text.getBytes(StandardCharsets.UTF_8);
-
         exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
         exchange.sendResponseHeaders(statusCode, response.length);
 
@@ -399,7 +401,34 @@ public class Main {
         }
     }
 
-    // Öffnet automatisch den Browser mit der angegebenen URL
+    private static void sendJson(HttpExchange exchange, int statusCode, String json) throws IOException {
+        byte[] response = json.getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+        exchange.sendResponseHeaders(statusCode, response.length);
+
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(response);
+        }
+    }
+
+    private static boolean istGetOderPost(HttpExchange exchange) {
+        String method = exchange.getRequestMethod();
+        return "GET".equalsIgnoreCase(method) || "POST".equalsIgnoreCase(method);
+    }
+
+    private static String jsonStringOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return "null";
+        }
+        return "\"" + escapeJson(value) + "\"";
+    }
+
+    private static String escapeJson(String text) {
+        return text
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
+    }
+
     private static void openBrowser(String url) {
         try {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
@@ -413,17 +442,11 @@ public class Main {
         }
     }
 
-    // Holt nur die Zahl aus dem übergebenen String
-    // Beispiele:
-    // "25" -> 25
-    // "25%" -> 25
-    // "Feuchte: 25%" -> 25
     private static Integer extrahiereProzent(String wert) {
         if (wert == null) {
             return null;
         }
 
-        // Alles außer Zahlen entfernen
         String nurZahlen = wert.replaceAll("[^0-9]", "");
 
         if (nurZahlen.isEmpty()) {
@@ -437,9 +460,6 @@ public class Main {
         }
     }
 
-    // Zerlegt den Query-String in Schlüssel/Wert-Paare
-    // Beispiel:
-    // "wert=25&name=baum" -> Map mit wert=25 und name=baum
     private static Map<String, String> parseQuery(String query) {
         Map<String, String> map = new HashMap<>();
 
@@ -447,17 +467,14 @@ public class Main {
             return map;
         }
 
-        // Einzelne Parameter trennen
         String[] pairs = query.split("&");
 
         for (String pair : pairs) {
             String[] keyValue = pair.split("=", 2);
 
             if (keyValue.length == 2) {
-                // URL-kodierte Zeichen wieder lesbar machen
                 String key = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8);
                 String value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8);
-
                 map.put(key, value);
             }
         }
