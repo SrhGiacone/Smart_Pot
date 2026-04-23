@@ -1,8 +1,6 @@
 package de.manuel.smartpot;
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-
 import java.awt.Desktop;
 import java.io.IOException;
 import java.io.InputStream;
@@ -281,7 +279,7 @@ public class Main {
                 break;
             case 0:
                 title = "SmartPot Notfall";
-                message = "Hilfe! 0% Feuchtigkeit erreicht. Bitte sofort gießen!";
+                message = "Du hast mich garnichmehr lieb :( 0% Feuchtigkeit erreicht!";
                 priority = "5";
                 break;
             default:
