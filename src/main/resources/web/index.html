@@ -94,8 +94,8 @@
                     <!-- Stamm + Äste -->
                     <g id="stamm-aeste">
                         <path id="stamm"
-                              d="M346 545
-                                     C334 486, 332 433, 348 372
+                              d="M346 554
+                                     C334 492, 332 436, 348 372
                                      C364 313, 384 255, 392 190"
                               fill="none"
                               stroke="url(#trunkGradient)"
@@ -157,12 +157,19 @@
                               d="M240 578 H460 L430 648 Q424 666 398 666 H302 Q276 666 270 648 Z"
                               fill="url(#potGradient)"/>
 
+                        <!-- Erde: oben gewölbt, unten flach -->
+                        <path id="erde"
+                              d="M243 578
+                                     L243 563
+                                     Q350 538 457 563
+                                     L457 578
+                                     Z"
+                              fill="#634a3a"/>
+
+                        <!-- Topfrand darüber -->
                         <rect id="topf-rand" x="225" y="548" width="250" height="30" rx="12" fill="#d69a70"/>
                         <rect id="topf-kante" x="236" y="566" width="228" height="14" rx="7" fill="#bc7f58"/>
                     </g>
-
-                    <!-- Erde -->
-                    <ellipse id="erde" cx="350" cy="552" rx="94" ry="16" fill="#634a3a"/>
                 </svg>
             </section>
 

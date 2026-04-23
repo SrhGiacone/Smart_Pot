@@ -358,7 +358,7 @@ body {
 }
 
 #erde {
-    filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.10));
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.08));
 }
 
 #topf {
